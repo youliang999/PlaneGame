@@ -11,6 +11,7 @@ public abstract class Flyer {
     protected  int y;
     protected  int height;
     protected  int width;
+    protected  int life;
 
     public abstract void step();
 
@@ -25,4 +26,8 @@ public abstract class Flyer {
     }
 
     public abstract boolean outOfBounds();
+
+    public int getLife() {
+        return life;
+    }
 }

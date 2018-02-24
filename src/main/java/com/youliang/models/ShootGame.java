@@ -3,8 +3,7 @@ package com.youliang.models;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
@@ -17,14 +16,18 @@ import java.util.TimerTask;
  * Created by youliang.cheng on 2018/2/23.
  */
 
-public class ShootGame extends JPanel {
+public class ShootGame extends JPanel implements ActionListener {
     private static final long serialVersionUID = 1L;
+
+    private static boolean isFirst = true;
     //背景图片的大小320*568
     public static final int WIDTH = 320;
     public static final int HEIGHT = 568;
     //游戏界面固定大小336*607
     public static final int FRAME_WIDTH = 336;
     public static final int FRAME_HEIGHT = 607;
+
+    public static Choose choose;
 
     public static BufferedImage background;
     public static BufferedImage start;
@@ -35,7 +38,12 @@ public class ShootGame extends JPanel {
     public static BufferedImage bullet;
     public static BufferedImage pause;
     public static BufferedImage gameover;
-
+    public static BufferedImage bee;
+    public static BufferedImage bosslv1;
+    public static BufferedImage bosslv2;
+    public static BufferedImage icon;
+    public static BufferedImage button;
+    public static BufferedImage buttonhover;
     static {
         try {
 
@@ -48,6 +56,12 @@ public class ShootGame extends JPanel {
             bullet = ImageIO.read(new URL("file:///E:\\javastudy\\PlaneGame\\recources\\bullet.png"));
             pause = ImageIO.read(new URL("file:///E:\\javastudy\\PlaneGame\\recources\\pause.png"));
             gameover = ImageIO.read(new URL("file:///E:\\javastudy\\PlaneGame\\recources\\gameover.png"));
+            bee = ImageIO.read(new URL("file:///E:\\javastudy\\PlaneGame\\recources\\bee.png"));
+            bosslv1 = ImageIO.read(new URL("file:///E:\\javastudy\\PlaneGame\\recources\\enemy2.png"));
+            bosslv2 = ImageIO.read(new URL("file:///E:\\javastudy\\PlaneGame\\recources\\enemy3.png"));
+            icon = ImageIO.read(new URL("file:///E:\\javastudy\\PlaneGame\\recources\\logo.png"));
+            button = ImageIO.read(new URL("file:///E:\\javastudy\\PlaneGame\\recources\\button_bg.png"));
+            buttonhover = ImageIO.read(new URL("file:///E:\\javastudy\\PlaneGame\\recources\\button_hover_bg.png"));
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -73,11 +87,27 @@ public class ShootGame extends JPanel {
         planeFrame.setLocationRelativeTo(null);
         planeFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-
         ShootGame game = new ShootGame();
         planeFrame.add(game);
         planeFrame.setVisible(true);
+        game.setFocusable(true);
         game.action();
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        String actionCmd = e.getActionCommand();
+        if (actionCmd.equals(Choose.START_GAME_BUTTON)) {
+            System.out.println("s");
+            String[] a = {"a"};
+            main(a);
+        } else if (actionCmd.equals(Choose.TOP_10_SCORES_BUTTON)) {
+            System.out.println("t");
+        } else if (actionCmd.equals(Choose.EXIT_GAME_BUTTON)) {
+            System.out.println("e");
+        } else if (actionCmd.equals(Choose.HELP_BUTTON)) {
+            System.out.println("h");
+        }
+
     }
 
     public void action() {
@@ -86,6 +116,8 @@ public class ShootGame extends JPanel {
             public void mouseEntered(MouseEvent e) {
                 if(state == PAUSE) {
                     state = RUNNING;
+                } else if (state == RUNNING) {
+                    state = PAUSE;
                 }
             }
 
@@ -124,6 +156,56 @@ public class ShootGame extends JPanel {
             }
         };
         this.addMouseMotionListener(l);
+
+
+        KeyAdapter k = new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                System.out.println("e:"+e.getKeyCode());
+                int speed = hero.getSpeed();
+                int x = hero.x;
+                int y = hero.y;
+                switch (e.getKeyCode()) {
+                    case KeyEvent.VK_LEFT:             //左
+                        hero.move(x-speed, y);
+                        break;
+                    case KeyEvent.VK_UP:               //上
+                        hero.move(x, y-speed);
+                        break;
+                    case KeyEvent.VK_RIGHT:            //右
+                        hero.move(x+speed, y);
+                        break;
+                    case KeyEvent.VK_DOWN:             //下
+                        hero.move(x, y+speed);
+                        break;
+                    case KeyEvent.VK_P:                 //pause
+                        if(state == RUNNING) {
+                            state = PAUSE;
+                        }
+                        break;
+                    case KeyEvent.VK_J:                 //start
+                        if(state == PAUSE) {
+                            state = RUNNING;
+                        }
+                        break;
+                    default: break;
+                }
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+                int x = hero.x;
+                int y = hero.y;
+                switch (e.getKeyCode()) {
+                    case KeyEvent.VK_LEFT:             //左
+                    case KeyEvent.VK_UP:               //上
+                    case KeyEvent.VK_RIGHT:            //右
+                    case KeyEvent.VK_DOWN:             //下
+                    default: break;
+                }
+            }
+        };
+        this.addKeyListener(k);
         this.addMouseListener(l);
 
         Timer timer = new Timer();
@@ -163,13 +245,31 @@ public class ShootGame extends JPanel {
         }, 10, 10);
     }
 
+    //出现敌机或者奖励物或者boss
     public void nextOne() {
         Random r = new Random();
         Flyer f = null;
-        if(r.nextInt(20) == 0) {
-            f = new Bigplane();
+        System.out.println("current score:" + hero.getScore());
+        if(hero.getScore() >= 500) {
+            if(r.nextInt(20) == 0) {
+                f = new BossLv1();
+            } else {
+                f = new Airplane();
+            }
+        } else if (hero.getScore() >= 1000) {
+            if(r.nextInt(30) == 0) {
+                f = new BossLv2();
+            } else {
+                f = new Airplane();
+            }
         } else {
-            f = new Airplane();
+            if (r.nextInt(20) == 0) {
+                f = new Bigplane();
+            } else if (r.nextInt(30) == 0) {
+                f = new Bee();
+            } else {
+                f = new Airplane();
+            }
         }
         flyers = Arrays.copyOf(flyers, flyers.length+1);
         flyers[flyers.length - 1] = f;
@@ -251,23 +351,23 @@ public class ShootGame extends JPanel {
 
     @Override
     public void paint(Graphics g) {
-        g.drawImage(background, 0, 0, null);
+            g.drawImage(background, 0, 0, null);
 
-        paintHero(g);
+            paintHero(g);
 
-        paintFlyers(g);
+            paintFlyers(g);
 
-        paintBullets(g);
+            paintBullets(g);
 
-        paintScore_Life(g);
+            paintScore_Life(g);
 
-        if(state == START) {
-            g.drawImage(start, 0, 0, null);
-        } else if(state == PAUSE) {
-            g.drawImage(pause, 0, 0, null);
-        } else if(state == GAME_OVER) {
-            g.drawImage(gameover, 0, 0, null);
-        }
+            if (state == START) {
+                g.drawImage(start, 0, 0, null);
+            } else if (state == PAUSE) {
+                g.drawImage(pause, 0, 0, null);
+            } else if (state == GAME_OVER) {
+                g.drawImage(gameover, 0, 0, null);
+            }
     }
 
     public void paintHero(Graphics g) {

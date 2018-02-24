@@ -7,6 +7,8 @@ public class Bullet extends Flyer {
 
     private int speed = 3;
 
+    private int damage = 10;
+
     public Bullet(int x, int y) {
         image = ShootGame.bullet;
         width = image.getWidth();

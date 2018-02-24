@@ -9,6 +9,7 @@ public class Hero extends Flyer{
     private int doubleFire;
     private int life;
     private int score;
+    private int speed = 5;
 
     public Hero() {
         image = ShootGame.hero0;
@@ -22,8 +23,23 @@ public class Hero extends Flyer{
     }
 
     public void move(int x, int y) {
-        this.x = x - width / 2;
-        this.y = y - height / 2;
+        if(x + width/2 <= 0) {
+            x = width/2;
+        }
+        if(x + width / 2 >= ShootGame.WIDTH ) {
+            x = ShootGame.WIDTH - width / 2;
+        }
+        if(y + height / 2 <= 0) {
+            y = height/2;
+        }
+        if(y + width / 2 >= ShootGame.HEIGHT) {
+            y = ShootGame.HEIGHT -height / 2;
+        }
+        //注释部分适用于鼠标控制
+   /*     this.x = x - width / 2;
+        this.y = y - height / 2;*/
+        this.x = x;
+        this.y = y;
     }
 
     @Override
@@ -44,10 +60,17 @@ public class Hero extends Flyer{
     public void getScore_Award(Flyer f) {
         if(f instanceof Airplane) {
             score += ((Airplane)f).getScore();
+        } else if(f instanceof Bee) {
+            speed += ((Bee)f).getAwardSpeed();
+            System.out.println("hero current speed: " + speed);
+        } else if(f instanceof BossLv1) {
+            score +=((BossLv1)f).getScore();
+        } else if(f instanceof BossLv2) {
+            score += ((BossLv2)f).getScore();
         } else {
             if(((Bigplane)f).getAwardType() == Bigplane.DOUBLE_FIRE) {
                 doubleFire += 20;
-            } else {
+            } else if(((Bigplane)f).getAwardType() == Bigplane.FILE){
                 life += 1;
             }
         }
@@ -84,5 +107,9 @@ public class Hero extends Flyer{
 
     public int getScore() {
         return score;
+    }
+
+    public int getSpeed() {
+        return speed;
     }
 }
